@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'schedule_screen.dart';
 
 // ── Placeholder models (replace with your real models later) ──────────────────
 
@@ -10,6 +11,9 @@ class Medication {
   final int pillsRemaining;
   final int refillThreshold;
   final Color color;
+  // 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
+  // Default: every day
+  final List<int> scheduledDays;
 
   const Medication({
     required this.name,
@@ -18,6 +22,7 @@ class Medication {
     required this.pillsRemaining,
     required this.refillThreshold,
     required this.color,
+    this.scheduledDays = const [0, 1, 2, 3, 4, 5, 6],
   });
 
   bool get needsRefill => pillsRemaining <= refillThreshold;
@@ -45,6 +50,7 @@ final List<Medication> sampleMeds = [
     pillsRemaining: 5,
     refillThreshold: 7,
     color: Color(0xFFE8A838),
+    scheduledDays: [0, 1, 2, 3, 4, 5, 6], // every day
   ),
   Medication(
     name: 'Lisinopril',
@@ -53,6 +59,7 @@ final List<Medication> sampleMeds = [
     pillsRemaining: 20,
     refillThreshold: 7,
     color: Color(0xFF5B9BD5),
+    scheduledDays: [0, 1, 2, 3, 4], // weekdays only
   ),
   Medication(
     name: 'Vitamin D',
@@ -61,6 +68,7 @@ final List<Medication> sampleMeds = [
     pillsRemaining: 3,
     refillThreshold: 7,
     color: Color(0xFF7EC86A),
+    scheduledDays: [0, 2, 4], // Mon, Wed, Fri
   ),
 ];
 
@@ -277,7 +285,12 @@ class _HomeScreenState extends State<HomeScreen>
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        // Navigate to full schedule screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ScheduleScreen(),
+                          ),
+                        );
                       },
                       icon: Icon(Icons.calendar_today_outlined, size: 18),
                       label: Text('View full schedule'),
@@ -511,10 +524,6 @@ class _RefillBanner extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          TextButton(
-            onPressed: () {},
-            child: Text('Order', style: TextStyle(color: _danger, fontSize: 13)),
           ),
         ],
       ),
