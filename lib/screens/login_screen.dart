@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'home_screen.dart';
+import '../services/bluetooth_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final BluetoothService btService;
+  const LoginScreen({super.key, required this.btService});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -82,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const HomeScreen(),
+        pageBuilder: (_, __, ___) => HomeScreen(btService: widget.btService),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 500),
@@ -158,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                   border: Border.all(color: const Color(0xFFE8C84A), width: 2.5),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFC4622D).withOpacity(0.5),
+                      color: const Color(0xFFC4622D).withValues(alpha: 0.5),
                       blurRadius: 30,
                       spreadRadius: 4,
                     ),
@@ -188,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    const Color(0xFFE8C84A).withOpacity(0.5),
+                    const Color(0xFFE8C84A).withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -259,9 +261,9 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
         decoration: BoxDecoration(
           color: const Color(0xFF1F2235),
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
           boxShadow: [
-            BoxShadow(color: color.withOpacity(0.06), blurRadius: 16, spreadRadius: 1),
+            BoxShadow(color: color.withValues(alpha: 0.06), blurRadius: 16, spreadRadius: 1),
           ],
         ),
         child: Row(
@@ -274,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                 color: const Color(0xFF0D0F1A),
                 border: Border.all(color: color, width: 2.5),
                 boxShadow: [
-                  BoxShadow(color: color.withOpacity(0.3), blurRadius: 12, spreadRadius: 1),
+                  BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 12, spreadRadius: 1),
                 ],
               ),
               child: Center(
@@ -301,10 +303,10 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF4FC3F7).withOpacity(0.1),
+                            color: const Color(0xFF4FC3F7).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: const Color(0xFF4FC3F7).withOpacity(0.3),
+                              color: const Color(0xFF4FC3F7).withValues(alpha: 0.3),
                             ),
                           ),
                           child: const Text(
@@ -337,9 +339,9 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: color.withOpacity(0.3)),
+                border: Border.all(color: color.withValues(alpha: 0.3)),
               ),
               child: Center(
                 child: Icon(
@@ -363,7 +365,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: const Color(0xFFE8C84A).withOpacity(0.3)),
+          border: Border.all(color: const Color(0xFFE8C84A).withValues(alpha: 0.3)),
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -414,7 +416,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
               color: const Color(0xFF0D0F1A),
               border: Border.all(color: color, width: 2.5),
               boxShadow: [
-                BoxShadow(color: color.withOpacity(0.3), blurRadius: 16, spreadRadius: 2),
+                BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 16, spreadRadius: 2),
               ],
             ),
             child: Center(
@@ -577,7 +579,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                     height: 52,
                     decoration: BoxDecoration(
                       color: selected
-                          ? const Color(0xFF4FC3F7).withOpacity(0.15)
+                          ? const Color(0xFF4FC3F7).withValues(alpha: 0.15)
                           : const Color(0xFF1F2235),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
@@ -690,7 +692,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFC4622D).withOpacity(0.4),
+                      color: const Color(0xFFC4622D).withValues(alpha: 0.4),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),

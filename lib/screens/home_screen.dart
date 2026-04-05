@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'schedule_screen.dart';
+import 'bluetooth_screen.dart';
+import '../services/bluetooth_service.dart';
 
 // ── Placeholder models (replace with your real models later) ──────────────────
 
@@ -106,7 +108,8 @@ const _success   = Color(0xFF6DBF6A);
 // ── Home screen ───────────────────────────────────────────────────────────────
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final BluetoothService btService;
+  const HomeScreen({super.key, required this.btService});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -307,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
 
       // ── Bottom nav ───────────────────────────────────────────────────────
-      bottomNavigationBar: _BottomNav(),
+      bottomNavigationBar: _BottomNav(btService: widget.btService),
     );
   }
 }
@@ -780,6 +783,9 @@ class _DoseTile extends StatelessWidget {
 // ── Bottom navigation ─────────────────────────────────────────────────────────
 
 class _BottomNav extends StatelessWidget {
+  final BluetoothService btService;
+  const _BottomNav({required this.btService});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -806,7 +812,16 @@ class _BottomNav extends StatelessWidget {
               icon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
         currentIndex: 0,
-        onTap: (_) {},
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BluetoothScreen(btService: btService),
+              ),
+            );
+          }
+        },
       ),
     );
   }

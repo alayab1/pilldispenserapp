@@ -10,7 +10,6 @@ const _accentDim = Color(0xFF7A561A);
 const _textPrim = Color(0xFFF5EDD6);
 const _textSec  = Color(0xFF9A8E78);
 const _success  = Color(0xFF6DBF6A);
-const _danger   = Color(0xFFE05C3A);
 
 // ── Days of week helper ───────────────────────────────────────────────────────
 
