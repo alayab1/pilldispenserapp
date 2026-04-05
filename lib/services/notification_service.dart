@@ -41,12 +41,12 @@ class NotificationService {
   // ─── REQUEST PERMISSIONS ──────────────────────────────────────────────────
   Future<void> _requestPermissions() async {
     await _notifications
-        .resolvePlatformSpecificImplementation
+        .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
 
     await _notifications
-        .resolvePlatformSpecificImplementation
+        .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(alert: true, badge: true, sound: true);
   }
@@ -54,7 +54,6 @@ class NotificationService {
   // ─── NOTIFICATION TAP HANDLER ─────────────────────────────────────────────
   void _onNotificationTapped(NotificationResponse response) {
     debugPrint('Notification tapped: ${response.payload}');
-    // TODO: navigate to home screen or dose screen based on payload
   }
 
   // ─── NOTIFICATION DETAILS ─────────────────────────────────────────────────

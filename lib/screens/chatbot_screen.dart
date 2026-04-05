@@ -43,7 +43,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   static const _eveBlue  = Color(0xFF78D4F0);
   static const _textDim  = Color(0xFF9A9A9A);
 
-  // !! PASTE YOUR OPENAI KEY HERE !!
+  // !! PASTE YOUR NEW OPENAI KEY HERE !!
   static const _openAiKey = 'YOUR_OPENAI_KEY';
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -115,9 +115,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     }
     final buffer = StringBuffer('The user takes the following medications:\n');
     for (final m in widget.medications) {
-      buffer.write('- ${m.name} (${m.dosage})');
-      if (m.purpose.isNotEmpty) buffer.write(': ${m.purpose}');
-      buffer.writeln();
+      buffer.writeln('- ${m.name} (${m.dosage})');
     }
     return buffer.toString();
   }
@@ -147,7 +145,6 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     });
     _scrollToBottom();
 
-    // Build history excluding the loading bubble
     final history = _messages
         .where((m) => !m.isLoading)
         .map((m) => {
@@ -247,7 +244,7 @@ Guidelines:
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       decoration: BoxDecoration(
         color: _bgCard,
         border: Border(
@@ -256,6 +253,15 @@ Guidelines:
       ),
       child: Row(
         children: [
+          // ── Back button ────────────────────────────────────────────────
+          IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded,
+                color: _amber, size: 20),
+            onPressed: () => Navigator.pop(context),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+          ),
+
+          // ── EVE avatar ─────────────────────────────────────────────────
           AnimatedBuilder(
             animation: _bobCtrl,
             builder: (context, child) => Transform.translate(
@@ -265,12 +271,15 @@ Guidelines:
             child: AnimatedBuilder(
               animation: _eyeCtrl,
               builder: (context, _) => CustomPaint(
-                size: const Size(48, 48),
+                size: const Size(44, 44),
                 painter: _EveMiniPainter(glowIntensity: _eyeAnim.value),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+
+          const SizedBox(width: 10),
+
+          // ── Title ──────────────────────────────────────────────────────
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,18 +288,20 @@ Guidelines:
                   'EVE — Med Assistant',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.3,
                   ),
                 ),
                 Text(
                   'Ask me anything about your meds',
-                  style: TextStyle(color: _textDim, fontSize: 12),
+                  style: TextStyle(color: _textDim, fontSize: 11),
                 ),
               ],
             ),
           ),
+
+          // ── Online indicator ───────────────────────────────────────────
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -317,6 +328,8 @@ Guidelines:
               ],
             ),
           ),
+
+          const SizedBox(width: 8),
         ],
       ),
     );
@@ -358,7 +371,8 @@ Guidelines:
           ],
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: isUser ? _amber.withValues(alpha: 0.15) : _bgCard,
                 borderRadius: BorderRadius.only(
@@ -376,7 +390,9 @@ Guidelines:
               child: Text(
                 msg.text,
                 style: TextStyle(
-                  color: isUser ? _amber : Colors.white.withValues(alpha: 0.92),
+                  color: isUser
+                      ? _amber
+                      : Colors.white.withValues(alpha: 0.92),
                   fontSize: 14.5,
                   height: 1.45,
                 ),
@@ -406,7 +422,8 @@ Guidelines:
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: _bgCard,
               borderRadius: const BorderRadius.only(
@@ -415,7 +432,8 @@ Guidelines:
                 bottomRight: Radius.circular(16),
                 bottomLeft: Radius.circular(4),
               ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              border:
+                  Border.all(color: Colors.white.withValues(alpha: 0.06)),
             ),
             child: _ThinkingDots(),
           ),
@@ -432,15 +450,17 @@ Guidelines:
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
         itemCount: _suggestions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, i) => GestureDetector(
           onTap: () => _sendMessage(_suggestions[i]),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: _bgCard,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _amberDim.withValues(alpha: 0.5)),
+              border:
+                  Border.all(color: _amberDim.withValues(alpha: 0.5)),
             ),
             child: Text(
               _suggestions[i],
@@ -483,11 +503,13 @@ Guidelines:
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide(color: _amber.withValues(alpha: 0.2)),
+                  borderSide:
+                      BorderSide(color: _amber.withValues(alpha: 0.2)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide(color: _amber.withValues(alpha: 0.2)),
+                  borderSide:
+                      BorderSide(color: _amber.withValues(alpha: 0.2)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
@@ -510,7 +532,9 @@ Guidelines:
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                _sending ? Icons.hourglass_top_rounded : Icons.send_rounded,
+                _sending
+                    ? Icons.hourglass_top_rounded
+                    : Icons.send_rounded,
                 color: _sending ? _textDim : Colors.black,
                 size: 20,
               ),
@@ -551,7 +575,7 @@ class _ThinkingDotsState extends State<_ThinkingDots>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _ctrl,
-      builder: (_, __) {
+      builder: (_, _) {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(3, (i) {
@@ -612,7 +636,8 @@ class _EveMiniPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(cx, cy - 1), width: 28, height: 11),
+        Rect.fromCenter(
+            center: Offset(cx, cy - 1), width: 28, height: 11),
         const Radius.circular(5.5),
       ),
       eyeBarPaint,
@@ -645,7 +670,8 @@ class _EveMiniPainter extends CustomPainter {
           glow,
         )!,
     );
-    canvas.drawCircle(center, 1.8, Paint()..color = const Color(0xFF0A1520));
+    canvas.drawCircle(
+        center, 1.8, Paint()..color = const Color(0xFF0A1520));
     canvas.drawCircle(
       center.translate(-1, -1.2),
       0.9,

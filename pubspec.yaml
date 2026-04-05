@@ -20,6 +20,7 @@ dependencies:
 
   # Notifications
   flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
 
   # Hardware communication
   flutter_blue_plus: ^1.35.3
@@ -27,7 +28,7 @@ dependencies:
   # Date & time formatting
   intl: ^0.19.0
 
-  # HTTP client for Claude API (chatbot)
+  # AI chatbot
   http: ^1.2.1
 
 dev_dependencies:
