@@ -22,7 +22,7 @@ class Medication {
     required this.pillsRemaining,
     required this.refillThreshold,
     required this.color,
-    this.scheduledDays = const [0, 1, 2, 3, 4, 5, 6],
+    required this.scheduledDays,
   });
 
   bool get needsRefill => pillsRemaining <= refillThreshold;
@@ -75,7 +75,9 @@ final List<Medication> sampleMeds = [
 List<ScheduledDose> buildTodaySchedule() {
   final doses = <ScheduledDose>[];
   final now = TimeOfDay.now();
+  final todayIndex = DateTime.now().weekday - 1; // 0=Mon … 6=Sun
   for (final med in sampleMeds) {
+    if (!med.scheduledDays.contains(todayIndex)) continue;
     for (final t in med.times) {
       final isPast =
           t.hour < now.hour || (t.hour == now.hour && t.minute <= now.minute);
@@ -92,14 +94,14 @@ List<ScheduledDose> buildTodaySchedule() {
 
 // ── Colours & theme ───────────────────────────────────────────────────────────
 
-const _bgDark   = Color(0xFF1A1610);  // WALL-E night sky
-const _bgCard   = Color(0xFF2A2318);  // dusty surface
-const _accent   = Color(0xFFE8A838);  // WALL-E amber/gold
+const _bgDark    = Color(0xFF2B2B2B);  // main gray background
+const _bgCard    = Color(0xFF383838);  // card gray
+const _accent    = Color(0xFFE8A838);  // WALL-E amber/gold
 const _accentDim = Color(0xFF7A561A);
-const _textPrim = Color(0xFFF5EDD6);
-const _textSec  = Color(0xFF9A8E78);
-const _danger   = Color(0xFFE05C3A);
-const _success  = Color(0xFF6DBF6A);
+const _textPrim  = Color(0xFFF5EDD6);
+const _textSec   = Color(0xFF9A9A9A);
+const _danger    = Color(0xFFE05C3A);
+const _success   = Color(0xFF6DBF6A);
 
 // ── Home screen ───────────────────────────────────────────────────────────────
 
@@ -207,17 +209,6 @@ class _HomeScreenState extends State<HomeScreen>
                   letterSpacing: 1.2,
                 ),
               ),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.person_outline, color: _textSec),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: Icon(Icons.chat_bubble_outline, color: _textSec),
-                  onPressed: () {},
-                  tooltip: 'AI Chat',
-                ),
-              ],
             ),
 
             SliverPadding(
@@ -408,82 +399,142 @@ class _WalleHeader extends StatelessWidget {
   }
 }
 
-// ── Simple WALL-E icon built from Flutter widgets ─────────────────────────────
-// Replace this with a Lottie animation for the real app
+// ── WALL-E custom painter ─────────────────────────────────────────────────────
 
 class _WalleIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        color: _accent.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _accent.withValues(alpha: 0.4), width: 1.5),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Body
-          Positioned(
-            bottom: 10,
-            child: Container(
-              width: 44,
-              height: 28,
-              decoration: BoxDecoration(
-                color: _accent.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-          ),
-          // Head
-          Positioned(
-            top: 10,
-            child: Container(
-              width: 36,
-              height: 28,
-              decoration: BoxDecoration(
-                color: _accent.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _Eye(),
-                  const SizedBox(width: 6),
-                  _Eye(),
-                ],
-              ),
-            ),
-          ),
-        ],
+    return SizedBox(
+      width: 90,
+      height: 90,
+      child: CustomPaint(
+        painter: _WallePainter(),
       ),
     );
   }
 }
 
-class _Eye extends StatelessWidget {
+class _WallePainter extends CustomPainter {
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: _bgDark,
-        border: Border.all(color: _bgDark, width: 1),
-      ),
-      child: Center(
-        child: Container(
-          width: 4,
-          height: 4,
-          decoration:
-              BoxDecoration(shape: BoxShape.circle, color: _accent),
-        ),
-      ),
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // ── Treads ───────────────────────────────────────────────────────────────
+    final treadPaint = Paint()..color = const Color(0xFF1A1A1A);
+    final treadLeft  = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.04, h * 0.68, w * 0.2, h * 0.28), Radius.circular(6));
+    final treadRight = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.76, h * 0.68, w * 0.2, h * 0.28), Radius.circular(6));
+    canvas.drawRRect(treadLeft,  treadPaint);
+    canvas.drawRRect(treadRight, treadPaint);
+
+    // Tread highlights
+    final treadHL = Paint()..color = const Color(0xFF333333);
+    for (int i = 0; i < 4; i++) {
+      canvas.drawRect(
+        Rect.fromLTWH(w * 0.06, h * (0.71 + i * 0.06), w * 0.16, h * 0.03),
+        treadHL,
+      );
+      canvas.drawRect(
+        Rect.fromLTWH(w * 0.78, h * (0.71 + i * 0.06), w * 0.16, h * 0.03),
+        treadHL,
+      );
+    }
+
+    // ── Body ─────────────────────────────────────────────────────────────────
+    final bodyPaint = Paint()..color = const Color(0xFFB8862A);
+    final body = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.18, h * 0.52, w * 0.64, h * 0.38), Radius.circular(6));
+    canvas.drawRRect(body, bodyPaint);
+
+    // Body shadow/detail line
+    final bodyDetail = Paint()
+      ..color = const Color(0xFF8A6010)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.22, h * 0.56, w * 0.56, h * 0.30), Radius.circular(4)),
+      bodyDetail,
+    );
+
+    // Solar panel lines on body
+    final linePaint = Paint()
+      ..color = const Color(0xFF8A6010)
+      ..strokeWidth = 1.0;
+    for (int i = 1; i < 4; i++) {
+      canvas.drawLine(
+        Offset(w * 0.22, h * (0.56 + i * 0.075)),
+        Offset(w * 0.78, h * (0.56 + i * 0.075)),
+        linePaint,
+      );
+    }
+
+    // ── Neck ─────────────────────────────────────────────────────────────────
+    final neckPaint = Paint()..color = const Color(0xFF8A6010);
+    canvas.drawRect(
+      Rect.fromLTWH(w * 0.40, h * 0.34, w * 0.20, h * 0.20),
+      neckPaint,
+    );
+    // Neck highlight
+    canvas.drawRect(
+      Rect.fromLTWH(w * 0.44, h * 0.36, w * 0.06, h * 0.16),
+      Paint()..color = const Color(0xFFD4A030),
+    );
+
+    // ── Head ─────────────────────────────────────────────────────────────────
+    final headPaint = Paint()..color = const Color(0xFFB8862A);
+    final head = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.12, h * 0.06, w * 0.76, h * 0.30), Radius.circular(8));
+    canvas.drawRRect(head, headPaint);
+
+    // Head rim
+    final headRim = Paint()
+      ..color = const Color(0xFF8A6010)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.12, h * 0.06, w * 0.76, h * 0.30), Radius.circular(8)),
+      headRim,
+    );
+
+    // ── Eyes (binocular style) ────────────────────────────────────────────────
+    _drawEye(canvas, Offset(w * 0.315, h * 0.205), w * 0.14, h);
+    _drawEye(canvas, Offset(w * 0.685, h * 0.205), w * 0.14, h);
+
+    // Eye bridge
+    final bridgePaint = Paint()..color = const Color(0xFF5A4010);
+    canvas.drawRect(
+      Rect.fromLTWH(w * 0.38, h * 0.175, w * 0.24, h * 0.06),
+      bridgePaint,
     );
   }
+
+  void _drawEye(Canvas canvas, Offset center, double radius, double h) {
+    // Outer ring (dark casing)
+    canvas.drawCircle(center, radius, Paint()..color = const Color(0xFF1A1A1A));
+
+    // Inner lens (dark)
+    canvas.drawCircle(center, radius * 0.78, Paint()..color = const Color(0xFF0D1A2A));
+
+    // Iris (blue)
+    canvas.drawCircle(center, radius * 0.55, Paint()..color = const Color(0xFF2E6DA4));
+
+    // Pupil
+    canvas.drawCircle(center, radius * 0.30, Paint()..color = const Color(0xFF0A0A0A));
+
+    // Shine highlight
+    canvas.drawCircle(
+      center + Offset(-radius * 0.18, -radius * 0.18),
+      radius * 0.14,
+      Paint()..color = Colors.white.withValues(alpha: 0.85),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // ── Refill warning banner ─────────────────────────────────────────────────────
@@ -751,6 +802,8 @@ class _BottomNav extends StatelessWidget {
               icon: Icon(Icons.star_rounded), label: 'Rewards'),
           BottomNavigationBarItem(
               icon: Icon(Icons.chat_bubble_rounded), label: 'Chat'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
         currentIndex: 0,
         onTap: (_) {},
