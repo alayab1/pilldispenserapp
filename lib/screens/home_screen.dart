@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'schedule_screen.dart';
-import 'bluetooth_screen.dart';
+import 'meds_screen.dart';
 import 'rewards_screen.dart';
 import 'profile_screen.dart';
 import 'chatbot_screen.dart';
@@ -397,16 +397,13 @@ class _WallePainter extends CustomPainter {
             Rect.fromLTWH(w * 0.76, h * 0.68, w * 0.2, h * 0.28),
             const Radius.circular(6)),
         treadPaint);
-
     final treadHL = Paint()..color = const Color(0xFF333333);
     for (int i = 0; i < 4; i++) {
       canvas.drawRect(
-          Rect.fromLTWH(
-              w * 0.06, h * (0.71 + i * 0.06), w * 0.16, h * 0.03),
+          Rect.fromLTWH(w * 0.06, h * (0.71 + i * 0.06), w * 0.16, h * 0.03),
           treadHL);
       canvas.drawRect(
-          Rect.fromLTWH(
-              w * 0.78, h * (0.71 + i * 0.06), w * 0.16, h * 0.03),
+          Rect.fromLTWH(w * 0.78, h * (0.71 + i * 0.06), w * 0.16, h * 0.03),
           treadHL);
     }
 
@@ -424,7 +421,6 @@ class _WallePainter extends CustomPainter {
           ..color = const Color(0xFF8A6010)
           ..strokeWidth = 1.5
           ..style = PaintingStyle.stroke);
-
     final linePaint = Paint()
       ..color = const Color(0xFF8A6010)
       ..strokeWidth = 1.0;
@@ -457,8 +453,6 @@ class _WallePainter extends CustomPainter {
     // Eyes
     _drawEye(canvas, Offset(w * 0.315, h * 0.205), w * 0.14);
     _drawEye(canvas, Offset(w * 0.685, h * 0.205), w * 0.14);
-
-    // Eye bridge
     canvas.drawRect(Rect.fromLTWH(w * 0.38, h * 0.175, w * 0.24, h * 0.06),
         Paint()..color = const Color(0xFF5A4010));
   }
@@ -583,8 +577,7 @@ class _NextMedCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Next dose',
-                    style: TextStyle(color: _textSec, fontSize: 11)),
+                Text('Next dose', style: TextStyle(color: _textSec, fontSize: 11)),
                 Text(med.name,
                     style: TextStyle(
                         color: _textPrim,
@@ -605,8 +598,7 @@ class _NextMedCard extends StatelessWidget {
                       fontSize: 15)),
               Container(
                 margin: const EdgeInsets.only(top: 4),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: med.color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
@@ -733,7 +725,7 @@ class _BottomNav extends StatelessWidget {
           if (index == 1) {
             Navigator.push(context,
                 MaterialPageRoute(
-                    builder: (_) => BluetoothScreen(btService: btService)));
+                    builder: (_) => MedsScreen(btService: btService)));
           } else if (index == 2) {
             Navigator.push(context,
                 MaterialPageRoute(
