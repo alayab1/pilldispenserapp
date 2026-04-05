@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'schedule_screen.dart';
 import 'bluetooth_screen.dart';
+import 'rewards_screen.dart';
 import '../services/bluetooth_service.dart';
 
 // ── Placeholder models (replace with your real models later) ──────────────────
@@ -818,6 +819,17 @@ class _BottomNav extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (_) => BluetoothScreen(btService: btService),
+              ),
+            );
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const RewardsScreen(
+                  userAge: 25,       // swap with real profile age later
+                  missedDoses: 0,    // swap with real missed dose count later
+                  currentStreak: 3,  // swap with real streak later
+                ),
               ),
             );
           }
