@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'login_screen.dart';
+import '../services/bluetooth_service.dart';
 
 // ── Colours ───────────────────────────────────────────────────────────────────
 const _bgDark    = Color(0xFF2B2B2B);
@@ -18,6 +20,7 @@ class ProfileScreen extends StatefulWidget {
   final String emoji;
   final int age;
   final int streak;
+  final BluetoothService btService;
 
   const ProfileScreen({
     super.key,
@@ -25,6 +28,7 @@ class ProfileScreen extends StatefulWidget {
     this.emoji   = '🧑',
     this.age     = 25,
     this.streak  = 7,
+    required this.btService,
   });
 
   @override
@@ -37,8 +41,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _overdoseWarnings = true;
   bool _soundOn          = true;
 
+  // Editable profile fields
+  late String _name;
+  late String _emoji;
+  late int    _age;
+
   final List<Map<String, String>> _familyMembers = [];
   final _emailController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _name  = widget.name;
+    _emoji = widget.emoji;
+    _age   = widget.age;
+  }
 
   @override
   void dispose() {
@@ -59,6 +76,241 @@ class _ProfileScreenState extends State<ProfileScreen> {
         content: Text('Invite sent to $email'),
         backgroundColor: _success,
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showEditProfile() {
+    final nameController  = TextEditingController(text: _name);
+    final ageController   = TextEditingController(text: _age.toString());
+    String selectedEmoji  = _emoji;
+    const avatars = ['🧑', '👦', '👧', '🧒', '👴', '👵', '🤖', '👾', '🐱', '🐶', '🦊', '🐸'];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setLocal) => Padding(
+          padding: EdgeInsets.fromLTRB(
+            24, 20, 24,
+            MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                      color: _textSec.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text('Edit profile',
+                    style: TextStyle(
+                        color: _textPrim,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18)),
+                const SizedBox(height: 20),
+
+                // Avatar picker
+                Text('Avatar',
+                    style: TextStyle(
+                        color: _accent,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5)),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: avatars.map((e) {
+                    final selected = selectedEmoji == e;
+                    return GestureDetector(
+                      onTap: () => setLocal(() => selectedEmoji = e),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? _accent.withValues(alpha: 0.15)
+                              : _bgDark,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: selected ? _accent : _textSec.withValues(alpha: 0.2),
+                            width: selected ? 2 : 1,
+                          ),
+                        ),
+                        child: Center(
+                            child: Text(e,
+                                style: const TextStyle(fontSize: 24))),
+                      ),
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Name field
+                Text('Name',
+                    style: TextStyle(
+                        color: _accent,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: nameController,
+                  style: TextStyle(color: _textPrim),
+                  decoration: InputDecoration(
+                    hintText: 'Your name',
+                    hintStyle: TextStyle(color: _textSec),
+                    filled: true,
+                    fillColor: _bgDark,
+                    prefixIcon: Icon(Icons.person_outline,
+                        color: _accent, size: 20),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: _accentDim)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: _accentDim)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: _accent, width: 1.5)),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Age field
+                Text('Age',
+                    style: TextStyle(
+                        color: _accent,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: ageController,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(color: _textPrim),
+                  decoration: InputDecoration(
+                    hintText: 'Your age',
+                    hintStyle: TextStyle(color: _textSec),
+                    filled: true,
+                    fillColor: _bgDark,
+                    prefixIcon:
+                        Icon(Icons.cake_outlined, color: _accent, size: 20),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: _accentDim)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: _accentDim)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: _accent, width: 1.5)),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Save button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final newAge =
+                          int.tryParse(ageController.text.trim()) ?? _age;
+                      final newName = nameController.text.trim();
+                      if (newName.isEmpty) return;
+                      setState(() {
+                        _name  = newName;
+                        _emoji = selectedEmoji;
+                        _age   = newAge;
+                      });
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Profile updated!'),
+                          backgroundColor: _success,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _accent,
+                      foregroundColor: _bgDark,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: const Text('Save changes',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 15)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _logout() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: _bgCard,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Sign out?',
+            style: TextStyle(
+                color: _textPrim, fontWeight: FontWeight.w700)),
+        content: Text(
+          'You\'ll need to select your profile again to get back in.',
+          style: TextStyle(color: _textSec, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: _textSec)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context); // close dialog
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      LoginScreen(btService: widget.btService),
+                ),
+                (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _danger,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Sign out',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
       ),
     );
   }
@@ -155,16 +407,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // ── Profile header ────────────────────────────────────────────
             _ProfileHeader(
-              name: widget.name,
-              emoji: widget.emoji,
-              age: widget.age,
+              name: _name,
+              emoji: _emoji,
+              age: _age,
               streak: widget.streak,
+              onEdit: _showEditProfile,
             ),
 
             const SizedBox(height: 20),
 
             // ── Stats row ─────────────────────────────────────────────────
-            _StatsRow(streak: widget.streak, age: widget.age),
+            _StatsRow(streak: widget.streak, age: _age),
 
             const SizedBox(height: 20),
 
@@ -251,9 +504,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                },
+                onPressed: _logout,
                 icon: Icon(Icons.logout_rounded, color: _danger),
                 label: Text('Sign out',
                     style: TextStyle(
@@ -278,11 +529,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 class _ProfileHeader extends StatelessWidget {
   final String name, emoji;
   final int age, streak;
+  final VoidCallback onEdit;
   const _ProfileHeader({
     required this.name,
     required this.emoji,
     required this.age,
     required this.streak,
+    required this.onEdit,
   });
 
   String _petLabel() {
@@ -341,7 +594,7 @@ class _ProfileHeader extends StatelessWidget {
           ),
           IconButton(
             icon: Icon(Icons.edit_outlined, color: _textSec, size: 20),
-            onPressed: () {},
+            onPressed: onEdit,
             tooltip: 'Edit profile',
           ),
         ],

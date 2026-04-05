@@ -12,12 +12,12 @@ import '../services/bluetooth_service.dart';
 class Medication {
   final String name;
   final String dosage;
+  final String purpose;
   final List<TimeOfDay> times;
   final int pillsRemaining;
   final int refillThreshold;
   final Color color;
   // 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
-  // Default: every day
   final List<int> scheduledDays;
 
   const Medication({
@@ -28,6 +28,7 @@ class Medication {
     required this.refillThreshold,
     required this.color,
     required this.scheduledDays,
+    this.purpose = '',
   });
 
   bool get needsRefill => pillsRemaining <= refillThreshold;
@@ -51,29 +52,32 @@ final List<Medication> sampleMeds = [
   Medication(
     name: 'Metformin',
     dosage: '500 mg',
+    purpose: 'Type 2 diabetes management',
     times: [TimeOfDay(hour: 8, minute: 0), TimeOfDay(hour: 20, minute: 0)],
     pillsRemaining: 5,
     refillThreshold: 7,
     color: Color(0xFFE8A838),
-    scheduledDays: [0, 1, 2, 3, 4, 5, 6], // every day
+    scheduledDays: [0, 1, 2, 3, 4, 5, 6],
   ),
   Medication(
     name: 'Lisinopril',
     dosage: '10 mg',
+    purpose: 'Blood pressure control',
     times: [TimeOfDay(hour: 9, minute: 30)],
     pillsRemaining: 20,
     refillThreshold: 7,
     color: Color(0xFF5B9BD5),
-    scheduledDays: [0, 1, 2, 3, 4], // weekdays only
+    scheduledDays: [0, 1, 2, 3, 4],
   ),
   Medication(
     name: 'Vitamin D',
     dosage: '1000 IU',
+    purpose: 'Vitamin D supplementation',
     times: [TimeOfDay(hour: 12, minute: 0)],
     pillsRemaining: 3,
     refillThreshold: 7,
     color: Color(0xFF7EC86A),
-    scheduledDays: [0, 2, 4], // Mon, Wed, Fri
+    scheduledDays: [0, 2, 4],
   ),
 ];
 
@@ -99,9 +103,9 @@ List<ScheduledDose> buildTodaySchedule() {
 
 // ── Colours & theme ───────────────────────────────────────────────────────────
 
-const _bgDark    = Color(0xFF2B2B2B);  // main gray background
-const _bgCard    = Color(0xFF383838);  // card gray
-const _accent    = Color(0xFFE8A838);  // WALL-E amber/gold
+const _bgDark    = Color(0xFF2B2B2B);
+const _bgCard    = Color(0xFF383838);
+const _accent    = Color(0xFFE8A838);
 const _accentDim = Color(0xFF7A561A);
 const _textPrim  = Color(0xFFF5EDD6);
 const _textSec   = Color(0xFF9A9A9A);
@@ -118,8 +122,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late Timer _clockTimer;
   DateTime _now = DateTime.now();
   late List<ScheduledDose> _doses;
@@ -131,12 +134,10 @@ class _HomeScreenState extends State<HomeScreen>
     super.initState();
     _doses = buildTodaySchedule();
 
-    // Tick clock every second
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() => _now = DateTime.now());
     });
 
-    // WALL-E floating animation
     _walleController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -201,7 +202,6 @@ class _HomeScreenState extends State<HomeScreen>
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // ── App bar ──────────────────────────────────────────────────────
             SliverAppBar(
               backgroundColor: _bgDark,
               elevation: 0,
@@ -216,39 +216,27 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
             ),
-
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-
-                  // ── WALL-E + greeting ────────────────────────────────────
                   _WalleHeader(
                     float: _walleFloat,
                     greeting: _greeting(),
                     now: _now,
                   ),
-
                   const SizedBox(height: 20),
-
-                  // ── Refill warnings ──────────────────────────────────────
                   if (_medsNeedingRefill.isNotEmpty) ...[
                     _RefillBanner(meds: _medsNeedingRefill),
                     const SizedBox(height: 16),
                   ],
-
-                  // ── Next medication card ─────────────────────────────────
                   _NextMedCard(
                     dose: _nextDose,
-                    timeUntil: _nextDose != null
-                        ? _timeUntil(_nextDose!.time)
-                        : null,
+                    timeUntil:
+                        _nextDose != null ? _timeUntil(_nextDose!.time) : null,
                     formatTime: _formatTime,
                   ),
-
                   const SizedBox(height: 20),
-
-                  // ── Section header: today's schedule ─────────────────────
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -266,42 +254,28 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 12),
-
-                  // ── Schedule list ────────────────────────────────────────
-                  ..._doses.map((dose) => _DoseTile(
-                        dose: dose,
-                        formatTime: _formatTime,
-                      )),
-
+                  ..._doses.map((dose) =>
+                      _DoseTile(dose: dose, formatTime: _formatTime)),
                   const SizedBox(height: 24),
-
-                  // ── View full schedule button ─────────────────────────────
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const ScheduleScreen(),
-                          ),
-                        );
-                      },
-                      icon: Icon(Icons.calendar_today_outlined, size: 18),
-                      label: Text('View full schedule'),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ScheduleScreen()),
+                      ),
+                      icon: const Icon(Icons.calendar_today_outlined, size: 18),
+                      label: const Text('View full schedule'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _accent,
                         foregroundColor: _bgDark,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        textStyle: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
+                        textStyle: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 15),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
+                            borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
                   ),
@@ -311,8 +285,6 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
       ),
-
-      // ── Bottom nav ───────────────────────────────────────────────────────
       bottomNavigationBar: _BottomNav(btService: widget.btService),
     );
   }
@@ -349,13 +321,10 @@ class _WalleHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // WALL-E illustration (simple widget — swap for Lottie animation)
           AnimatedBuilder(
             animation: float,
-            builder: (_, child) => Transform.translate(
-              offset: Offset(0, float.value),
-              child: child,
-            ),
+            builder: (_, child) =>
+                Transform.translate(offset: Offset(0, float.value), child: child),
             child: _WalleIcon(),
           ),
           const SizedBox(width: 16),
@@ -363,19 +332,14 @@ class _WalleHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  greeting,
-                  style: TextStyle(
-                    color: _accent,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+                Text(greeting,
+                    style: TextStyle(
+                        color: _accent,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
-                Text(
-                  "WALL-E's got your meds covered.",
-                  style: TextStyle(color: _textSec, fontSize: 13),
-                ),
+                Text("WALL-E's got your meds covered.",
+                    style: TextStyle(color: _textSec, fontSize: 13)),
                 const SizedBox(height: 10),
                 Container(
                   padding:
@@ -383,8 +347,8 @@ class _WalleHeader extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: _accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
-                    border:
-                        Border.all(color: _accent.withValues(alpha: 0.3), width: 1),
+                    border: Border.all(
+                        color: _accent.withValues(alpha: 0.3), width: 1),
                   ),
                   child: Text(
                     _clockString(),
@@ -405,18 +369,13 @@ class _WalleHeader extends StatelessWidget {
   }
 }
 
-// ── WALL-E custom painter ─────────────────────────────────────────────────────
+// ── WALL-E icon & painter ─────────────────────────────────────────────────────
 
 class _WalleIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 90,
-      height: 90,
-      child: CustomPaint(
-        painter: _WallePainter(),
-      ),
-    );
+        width: 90, height: 90, child: CustomPaint(painter: _WallePainter()));
   }
 }
 
@@ -426,117 +385,96 @@ class _WallePainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // ── Treads ───────────────────────────────────────────────────────────────
+    // Treads
     final treadPaint = Paint()..color = const Color(0xFF1A1A1A);
-    final treadLeft  = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.04, h * 0.68, w * 0.2, h * 0.28), Radius.circular(6));
-    final treadRight = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.76, h * 0.68, w * 0.2, h * 0.28), Radius.circular(6));
-    canvas.drawRRect(treadLeft,  treadPaint);
-    canvas.drawRRect(treadRight, treadPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(w * 0.04, h * 0.68, w * 0.2, h * 0.28),
+            const Radius.circular(6)),
+        treadPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(w * 0.76, h * 0.68, w * 0.2, h * 0.28),
+            const Radius.circular(6)),
+        treadPaint);
 
-    // Tread highlights
     final treadHL = Paint()..color = const Color(0xFF333333);
     for (int i = 0; i < 4; i++) {
       canvas.drawRect(
-        Rect.fromLTWH(w * 0.06, h * (0.71 + i * 0.06), w * 0.16, h * 0.03),
-        treadHL,
-      );
+          Rect.fromLTWH(
+              w * 0.06, h * (0.71 + i * 0.06), w * 0.16, h * 0.03),
+          treadHL);
       canvas.drawRect(
-        Rect.fromLTWH(w * 0.78, h * (0.71 + i * 0.06), w * 0.16, h * 0.03),
-        treadHL,
-      );
+          Rect.fromLTWH(
+              w * 0.78, h * (0.71 + i * 0.06), w * 0.16, h * 0.03),
+          treadHL);
     }
 
-    // ── Body ─────────────────────────────────────────────────────────────────
-    final bodyPaint = Paint()..color = const Color(0xFFB8862A);
-    final body = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.18, h * 0.52, w * 0.64, h * 0.38), Radius.circular(6));
-    canvas.drawRRect(body, bodyPaint);
-
-    // Body shadow/detail line
-    final bodyDetail = Paint()
-      ..color = const Color(0xFF8A6010)
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
+    // Body
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * 0.22, h * 0.56, w * 0.56, h * 0.30), Radius.circular(4)),
-      bodyDetail,
-    );
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(w * 0.18, h * 0.52, w * 0.64, h * 0.38),
+            const Radius.circular(6)),
+        Paint()..color = const Color(0xFFB8862A));
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(w * 0.22, h * 0.56, w * 0.56, h * 0.30),
+            const Radius.circular(4)),
+        Paint()
+          ..color = const Color(0xFF8A6010)
+          ..strokeWidth = 1.5
+          ..style = PaintingStyle.stroke);
 
-    // Solar panel lines on body
     final linePaint = Paint()
       ..color = const Color(0xFF8A6010)
       ..strokeWidth = 1.0;
     for (int i = 1; i < 4; i++) {
-      canvas.drawLine(
-        Offset(w * 0.22, h * (0.56 + i * 0.075)),
-        Offset(w * 0.78, h * (0.56 + i * 0.075)),
-        linePaint,
-      );
+      canvas.drawLine(Offset(w * 0.22, h * (0.56 + i * 0.075)),
+          Offset(w * 0.78, h * (0.56 + i * 0.075)), linePaint);
     }
 
-    // ── Neck ─────────────────────────────────────────────────────────────────
-    final neckPaint = Paint()..color = const Color(0xFF8A6010);
-    canvas.drawRect(
-      Rect.fromLTWH(w * 0.40, h * 0.34, w * 0.20, h * 0.20),
-      neckPaint,
-    );
-    // Neck highlight
-    canvas.drawRect(
-      Rect.fromLTWH(w * 0.44, h * 0.36, w * 0.06, h * 0.16),
-      Paint()..color = const Color(0xFFD4A030),
-    );
+    // Neck
+    canvas.drawRect(Rect.fromLTWH(w * 0.40, h * 0.34, w * 0.20, h * 0.20),
+        Paint()..color = const Color(0xFF8A6010));
+    canvas.drawRect(Rect.fromLTWH(w * 0.44, h * 0.36, w * 0.06, h * 0.16),
+        Paint()..color = const Color(0xFFD4A030));
 
-    // ── Head ─────────────────────────────────────────────────────────────────
-    final headPaint = Paint()..color = const Color(0xFFB8862A);
-    final head = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.12, h * 0.06, w * 0.76, h * 0.30), Radius.circular(8));
-    canvas.drawRRect(head, headPaint);
-
-    // Head rim
-    final headRim = Paint()
-      ..color = const Color(0xFF8A6010)
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
+    // Head
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * 0.12, h * 0.06, w * 0.76, h * 0.30), Radius.circular(8)),
-      headRim,
-    );
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(w * 0.12, h * 0.06, w * 0.76, h * 0.30),
+            const Radius.circular(8)),
+        Paint()..color = const Color(0xFFB8862A));
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(w * 0.12, h * 0.06, w * 0.76, h * 0.30),
+            const Radius.circular(8)),
+        Paint()
+          ..color = const Color(0xFF8A6010)
+          ..strokeWidth = 1.5
+          ..style = PaintingStyle.stroke);
 
-    // ── Eyes (binocular style) ────────────────────────────────────────────────
-    _drawEye(canvas, Offset(w * 0.315, h * 0.205), w * 0.14, h);
-    _drawEye(canvas, Offset(w * 0.685, h * 0.205), w * 0.14, h);
+    // Eyes
+    _drawEye(canvas, Offset(w * 0.315, h * 0.205), w * 0.14);
+    _drawEye(canvas, Offset(w * 0.685, h * 0.205), w * 0.14);
 
     // Eye bridge
-    final bridgePaint = Paint()..color = const Color(0xFF5A4010);
-    canvas.drawRect(
-      Rect.fromLTWH(w * 0.38, h * 0.175, w * 0.24, h * 0.06),
-      bridgePaint,
-    );
+    canvas.drawRect(Rect.fromLTWH(w * 0.38, h * 0.175, w * 0.24, h * 0.06),
+        Paint()..color = const Color(0xFF5A4010));
   }
 
-  void _drawEye(Canvas canvas, Offset center, double radius, double h) {
-    // Outer ring (dark casing)
+  void _drawEye(Canvas canvas, Offset center, double radius) {
     canvas.drawCircle(center, radius, Paint()..color = const Color(0xFF1A1A1A));
-
-    // Inner lens (dark)
-    canvas.drawCircle(center, radius * 0.78, Paint()..color = const Color(0xFF0D1A2A));
-
-    // Iris (blue)
-    canvas.drawCircle(center, radius * 0.55, Paint()..color = const Color(0xFF2E6DA4));
-
-    // Pupil
-    canvas.drawCircle(center, radius * 0.30, Paint()..color = const Color(0xFF0A0A0A));
-
-    // Shine highlight
     canvas.drawCircle(
-      center + Offset(-radius * 0.18, -radius * 0.18),
-      radius * 0.14,
-      Paint()..color = Colors.white.withValues(alpha: 0.85),
-    );
+        center, radius * 0.78, Paint()..color = const Color(0xFF0D1A2A));
+    canvas.drawCircle(
+        center, radius * 0.55, Paint()..color = const Color(0xFF2E6DA4));
+    canvas.drawCircle(
+        center, radius * 0.30, Paint()..color = const Color(0xFF0A0A0A));
+    canvas.drawCircle(
+        center + Offset(-radius * 0.18, -radius * 0.18),
+        radius * 0.14,
+        Paint()..color = Colors.white.withValues(alpha: 0.85));
   }
 
   @override
@@ -566,17 +504,16 @@ class _RefillBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Refill needed',
-                  style: TextStyle(
-                    color: _danger,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
+                Text('Refill needed',
+                    style: TextStyle(
+                        color: _danger,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14)),
                 const SizedBox(height: 2),
                 Text(
-                  meds.map((m) => '${m.name} (${m.pillsRemaining} left)').join(' · '),
+                  meds
+                      .map((m) => '${m.name} (${m.pillsRemaining} left)')
+                      .join(' · '),
                   style: TextStyle(color: _textSec, fontSize: 12),
                 ),
               ],
@@ -607,25 +544,22 @@ class _NextMedCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _bgCard,
-          borderRadius: BorderRadius.circular(16),
-        ),
+            color: _bgCard, borderRadius: BorderRadius.circular(16)),
         child: Row(
           children: [
             Icon(Icons.check_circle_outline, color: _success, size: 28),
             const SizedBox(width: 12),
-            Text(
-              'All doses taken today!',
-              style: TextStyle(
-                  color: _success, fontWeight: FontWeight.w700, fontSize: 15),
-            ),
+            Text('All doses taken today!',
+                style: TextStyle(
+                    color: _success,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15)),
           ],
         ),
       );
     }
 
     final med = dose!.medication;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -649,36 +583,26 @@ class _NextMedCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Next dose',
-                  style: TextStyle(color: _textSec, fontSize: 11),
-                ),
-                Text(
-                  med.name,
-                  style: TextStyle(
-                    color: _textPrim,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  med.dosage,
-                  style: TextStyle(color: _textSec, fontSize: 12),
-                ),
+                Text('Next dose',
+                    style: TextStyle(color: _textSec, fontSize: 11)),
+                Text(med.name,
+                    style: TextStyle(
+                        color: _textPrim,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16)),
+                Text(med.dosage,
+                    style: TextStyle(color: _textSec, fontSize: 12)),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                formatTime(dose!.time),
-                style: TextStyle(
-                  color: med.color,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
-              ),
+              Text(formatTime(dose!.time),
+                  style: TextStyle(
+                      color: med.color,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15)),
               Container(
                 margin: const EdgeInsets.only(top: 4),
                 padding:
@@ -687,13 +611,11 @@ class _NextMedCard extends StatelessWidget {
                   color: med.color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  timeUntil ?? '',
-                  style: TextStyle(
-                      color: med.color,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600),
-                ),
+                child: Text(timeUntil ?? '',
+                    style: TextStyle(
+                        color: med.color,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -731,7 +653,6 @@ class _DoseTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Color dot
             Container(
               width: 10,
               height: 10,
@@ -745,29 +666,21 @@ class _DoseTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    med.name,
-                    style: TextStyle(
-                      color: _textPrim,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  Text(
-                    med.dosage,
-                    style: TextStyle(color: _textSec, fontSize: 12),
-                  ),
+                  Text(med.name,
+                      style: TextStyle(
+                          color: _textPrim,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14)),
+                  Text(med.dosage,
+                      style: TextStyle(color: _textSec, fontSize: 12)),
                 ],
               ),
             ),
-            Text(
-              formatTime(dose.time),
-              style: TextStyle(
-                color: dose.taken ? _textSec : med.color,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
+            Text(formatTime(dose.time),
+                style: TextStyle(
+                    color: dose.taken ? _textSec : med.color,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13)),
             const SizedBox(width: 10),
             Icon(
               dose.taken
@@ -794,7 +707,8 @@ class _BottomNav extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: _bgCard,
-        border: Border(top: BorderSide(color: _accentDim.withValues(alpha: 0.3))),
+        border:
+            Border(top: BorderSide(color: _accentDim.withValues(alpha: 0.3))),
       ),
       child: BottomNavigationBar(
         backgroundColor: Colors.transparent,
@@ -802,6 +716,7 @@ class _BottomNav extends StatelessWidget {
         selectedItemColor: _accent,
         unselectedItemColor: _textSec,
         type: BottomNavigationBarType.fixed,
+        currentIndex: 0,
         items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.home_rounded), label: 'Home'),
@@ -814,48 +729,36 @@ class _BottomNav extends StatelessWidget {
           BottomNavigationBarItem(
               icon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
-        currentIndex: 0,
         onTap: (index) {
           if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BluetoothScreen(btService: btService),
-              ),
-            );
+            Navigator.push(context,
+                MaterialPageRoute(
+                    builder: (_) => BluetoothScreen(btService: btService)));
           } else if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const RewardsScreen(
-                  userAge: 25,
-                  missedDoses: 0,
-                  currentStreak: 3,
-                ),
-              ),
-            );
+            Navigator.push(context,
+                MaterialPageRoute(
+                    builder: (_) => const RewardsScreen(
+                          userAge: 25,
+                          missedDoses: 0,
+                          currentStreak: 3,
+                        )));
           } else if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ChatbotScreen(
-                  medications: sampleMeds,
-                  userAge: 25,
-                ),
-              ),
-            );
+            Navigator.push(context,
+                MaterialPageRoute(
+                    builder: (_) => ChatbotScreen(
+                          medications: sampleMeds,
+                          userAge: 25,
+                        )));
           } else if (index == 4) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const ProfileScreen(
-                  name: 'Alex',
-                  emoji: '🧑',
-                  age: 25,
-                  streak: 7,
-                ),
-              ),
-            );
+            Navigator.push(context,
+                MaterialPageRoute(
+                    builder: (_) => ProfileScreen(
+                          name: 'Alex',
+                          emoji: '🧑',
+                          age: 25,
+                          streak: 7,
+                          btService: btService,
+                        )));
           }
         },
       ),

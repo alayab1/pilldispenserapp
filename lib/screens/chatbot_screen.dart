@@ -35,7 +35,6 @@ class ChatbotScreen extends StatefulWidget {
 
 class _ChatbotScreenState extends State<ChatbotScreen>
     with TickerProviderStateMixin {
-  // ── Colors ────────────────────────────────────────────────────────────────
   static const _bgDark   = Color(0xFF2B2B2B);
   static const _bgCard   = Color(0xFF383838);
   static const _amber    = Color(0xFFE8A838);
@@ -43,23 +42,20 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   static const _eveBlue  = Color(0xFF78D4F0);
   static const _textDim  = Color(0xFF9A9A9A);
 
-  // !! PASTE YOUR NEW OPENAI KEY HERE !!
+  // !! PASTE YOUR OPENAI KEY HERE !!
   static const _openAiKey = 'YOUR_OPENAI_KEY';
 
-  // ── State ─────────────────────────────────────────────────────────────────
   final _controller    = TextEditingController();
   final _scrollCtrl    = ScrollController();
   final _focusNode     = FocusNode();
   final List<_Message> _messages = [];
   bool _sending = false;
 
-  // ── Animations ────────────────────────────────────────────────────────────
   late final AnimationController _eyeCtrl;
   late final AnimationController _bobCtrl;
   late final Animation<double>   _eyeAnim;
   late final Animation<double>   _bobAnim;
 
-  // ── Suggested prompts ────────────────────────────────────────────────────
   final List<String> _suggestions = [
     'What are my medications for?',
     'Can I take these together?',
@@ -108,19 +104,19 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     super.dispose();
   }
 
-  // ── Build medication context ──────────────────────────────────────────────
   String _buildMedContext() {
     if (widget.medications.isEmpty) {
       return 'The user has not added any medications yet.';
     }
     final buffer = StringBuffer('The user takes the following medications:\n');
     for (final m in widget.medications) {
-      buffer.writeln('- ${m.name} (${m.dosage})');
+      buffer.write('- ${m.name} (${m.dosage})');
+      if (m.purpose.isNotEmpty) buffer.write(': ${m.purpose}');
+      buffer.writeln();
     }
     return buffer.toString();
   }
 
-  // ── Send message ──────────────────────────────────────────────────────────
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty || _sending) return;
     _controller.clear();
@@ -224,7 +220,6 @@ Guidelines:
     });
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -253,15 +248,12 @@ Guidelines:
       ),
       child: Row(
         children: [
-          // ── Back button ────────────────────────────────────────────────
           IconButton(
-            icon: Icon(Icons.arrow_back_ios_new_rounded,
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: _amber, size: 20),
             onPressed: () => Navigator.pop(context),
             padding: const EdgeInsets.symmetric(horizontal: 4),
           ),
-
-          // ── EVE avatar ─────────────────────────────────────────────────
           AnimatedBuilder(
             animation: _bobCtrl,
             builder: (context, child) => Transform.translate(
@@ -276,10 +268,7 @@ Guidelines:
               ),
             ),
           ),
-
           const SizedBox(width: 10),
-
-          // ── Title ──────────────────────────────────────────────────────
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,15 +282,11 @@ Guidelines:
                     letterSpacing: 0.3,
                   ),
                 ),
-                Text(
-                  'Ask me anything about your meds',
-                  style: TextStyle(color: _textDim, fontSize: 11),
-                ),
+                Text('Ask me anything about your meds',
+                    style: TextStyle(color: _textDim, fontSize: 11)),
               ],
             ),
           ),
-
-          // ── Online indicator ───────────────────────────────────────────
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -316,19 +301,14 @@ Guidelines:
                   width: 6,
                   height: 6,
                   decoration: const BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                  ),
+                      color: Colors.green, shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 4),
-                const Text(
-                  'Online',
-                  style: TextStyle(color: Colors.green, fontSize: 11),
-                ),
+                const Text('Online',
+                    style: TextStyle(color: Colors.green, fontSize: 11)),
               ],
             ),
           ),
-
           const SizedBox(width: 8),
         ],
       ),
@@ -390,9 +370,7 @@ Guidelines:
               child: Text(
                 msg.text,
                 style: TextStyle(
-                  color: isUser
-                      ? _amber
-                      : Colors.white.withValues(alpha: 0.92),
+                  color: isUser ? _amber : Colors.white.withValues(alpha: 0.92),
                   fontSize: 14.5,
                   height: 1.45,
                 ),
@@ -422,8 +400,7 @@ Guidelines:
           ),
           const SizedBox(width: 8),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: _bgCard,
               borderRadius: const BorderRadius.only(
@@ -450,22 +427,19 @@ Guidelines:
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
         itemCount: _suggestions.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        // fixed: was (_, _) which is a compile error — must be (_, __)
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) => GestureDetector(
           onTap: () => _sendMessage(_suggestions[i]),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: _bgCard,
               borderRadius: BorderRadius.circular(20),
-              border:
-                  Border.all(color: _amberDim.withValues(alpha: 0.5)),
+              border: Border.all(color: _amberDim.withValues(alpha: 0.5)),
             ),
-            child: Text(
-              _suggestions[i],
-              style: const TextStyle(color: _amber, fontSize: 12.5),
-            ),
+            child: Text(_suggestions[i],
+                style: const TextStyle(color: _amber, fontSize: 12.5)),
           ),
         ),
       ),
@@ -478,8 +452,7 @@ Guidelines:
       decoration: BoxDecoration(
         color: _bgCard,
         border: Border(
-          top: BorderSide(color: _amber.withValues(alpha: 0.15), width: 1),
-        ),
+            top: BorderSide(color: _amber.withValues(alpha: 0.15), width: 1)),
       ),
       child: Row(
         children: [
@@ -498,9 +471,7 @@ Guidelines:
                 filled: true,
                 fillColor: _bgDark,
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
+                    horizontal: 16, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide:
@@ -526,9 +497,7 @@ Guidelines:
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: _sending
-                    ? _amberDim.withValues(alpha: 0.4)
-                    : _amber,
+                color: _sending ? _amberDim.withValues(alpha: 0.4) : _amber,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -575,7 +544,7 @@ class _ThinkingDotsState extends State<_ThinkingDots>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _ctrl,
-      builder: (_, _) {
+      builder: (_, __) {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(3, (i) {
@@ -608,39 +577,34 @@ class _EveMiniPainter extends CustomPainter {
     final cx = size.width / 2;
     final cy = size.height / 2;
 
-    final bodyPaint = Paint()
-      ..color = const Color(0xFFEEEEEE)
-      ..style = PaintingStyle.fill;
     canvas.drawOval(
         Rect.fromCenter(center: Offset(cx, cy + 4), width: 34, height: 42),
-        bodyPaint);
+        Paint()
+          ..color = const Color(0xFFEEEEEE)
+          ..style = PaintingStyle.fill);
 
-    final outlinePaint = Paint()
-      ..color = const Color(0xFFCCCCCC)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
     canvas.drawOval(
         Rect.fromCenter(center: Offset(cx, cy + 4), width: 34, height: 42),
-        outlinePaint);
+        Paint()
+          ..color = const Color(0xFFCCCCCC)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1);
 
-    final glowPaint = Paint()
-      ..color =
-          const Color(0xFF78D4F0).withValues(alpha: 0.3 * glowIntensity)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
     canvas.drawOval(
         Rect.fromCenter(center: Offset(cx, cy - 1), width: 30, height: 14),
-        glowPaint);
+        Paint()
+          ..color =
+              const Color(0xFF78D4F0).withValues(alpha: 0.3 * glowIntensity)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
 
-    final eyeBarPaint = Paint()
-      ..color = const Color(0xFF111111)
-      ..style = PaintingStyle.fill;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(
-            center: Offset(cx, cy - 1), width: 28, height: 11),
+        Rect.fromCenter(center: Offset(cx, cy - 1), width: 28, height: 11),
         const Radius.circular(5.5),
       ),
-      eyeBarPaint,
+      Paint()
+        ..color = const Color(0xFF111111)
+        ..style = PaintingStyle.fill,
     );
 
     _drawEye(canvas, Offset(cx - 7, cy - 1), glowIntensity);
@@ -660,23 +624,17 @@ class _EveMiniPainter extends CustomPainter {
   }
 
   void _drawEye(Canvas canvas, Offset center, double glow) {
-    canvas.drawCircle(
-      center,
-      4,
-      Paint()
-        ..color = Color.lerp(
-          const Color(0xFF4ABCDE),
-          const Color(0xFF78D4F0),
-          glow,
-        )!,
-    );
+    canvas.drawCircle(center, 4,
+        Paint()
+          ..color = Color.lerp(
+            const Color(0xFF4ABCDE),
+            const Color(0xFF78D4F0),
+            glow,
+          )!);
     canvas.drawCircle(
         center, 1.8, Paint()..color = const Color(0xFF0A1520));
-    canvas.drawCircle(
-      center.translate(-1, -1.2),
-      0.9,
-      Paint()..color = Colors.white.withValues(alpha: 0.9),
-    );
+    canvas.drawCircle(center.translate(-1, -1.2), 0.9,
+        Paint()..color = Colors.white.withValues(alpha: 0.9));
   }
 
   @override
